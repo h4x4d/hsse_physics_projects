@@ -2,7 +2,7 @@ from math import cos, sin, radians
 
 from vpython import vector, ring, color
 
-from earth import Earth
+from objects.earth import Earth
 
 
 class ISSOrbit:
