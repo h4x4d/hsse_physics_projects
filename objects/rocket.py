@@ -71,7 +71,7 @@ class Rocket:
 
         if self.pos.mag + inertia_distance >= Earth.RADIUS + 200 * 1000:
             self.status = Status.INERTIA
-            print(f"INTETIA: {self.pos.mag - (vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)).mag}, {self.speed.mag}, {inertia_distance}")
+            print(f"INERTIA: {self.pos.mag - (vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)).mag}, {self.speed.mag}, {inertia_distance}")
 
         self.object.pos = self.pos
 
@@ -81,8 +81,6 @@ class Rocket:
         print(self.speed.mag, free_fall_acceleration)
         self.speed += self.axis / self.axis.mag * (-free_fall_acceleration * dt)
         if all(i <= 0 for i in self.speed.value):
-            print(
-                f"INTETIA: {self.pos.mag - (vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)).mag}")
             self.status = Status.ORBIT
             self.speed = vector(0, 0, 0)
             return
