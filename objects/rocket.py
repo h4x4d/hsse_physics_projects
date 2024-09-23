@@ -20,10 +20,11 @@ class Status(enum.Enum):
 class Rocket:
     MASS = 1000
     GAS_SPEED = 8000
+    START_POS = vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)
 
     def __init__(self, camera):
         self.axis = vector(cos(radians(51)) * 10, sin(radians(51)) * 10, 0)
-        self.pos = vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)
+        self.pos = self.START_POS
 
         self.speed = vector(0, 0, 0)
 
@@ -34,7 +35,7 @@ class Rocket:
             radius=25,
             length=50,
             make_trail=True,
-            trail_radius=10000
+            trail_radius=10 # 000
         )
 
         self.acceleration = 0
@@ -42,7 +43,7 @@ class Rocket:
 
         self.status = Status.TAKEOFF
 
-        # camera.follow(self.object)
+        camera.follow(self.object)
 
     @property
     def mass(self):
