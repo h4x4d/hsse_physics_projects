@@ -14,9 +14,9 @@ earth = Earth()
 rocket = Rocket(canvas.canvas)
 canvas.canvas.range = 1000
 
-# input("START:")
+input("START:")
 
 while True:
     rate(10**5)
-    rocket.update()
+    rocket.update(1)
 
