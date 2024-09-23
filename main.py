@@ -11,10 +11,10 @@ coordinates_system = Coordinates(10 ** len(str(Earth.RADIUS)))
 iss_orbit = ISSOrbit()
 earth = Earth()
 
-rocket = Rocket(canvas.canvas.camera)
+rocket = Rocket(canvas.canvas)
 canvas.canvas.range = 1000
 
-input()
+# input("START:")
 
 while True:
     rate(10**5)
