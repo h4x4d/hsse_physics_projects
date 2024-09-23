@@ -13,14 +13,14 @@ iss_orbit = ISSOrbit()
 earth = Earth()
 
 rocket = Rocket(canvas.canvas)
-canvas.canvas.range = 1000
+# canvas.canvas.range = 1000
 
 # input("START:")
 ticks = 0
 dt = 1
 
 while True:
-    rate(20)
+    rate(1000)
     ticks += dt
     values = rocket.update(dt)
     canvas.load_info(*render_logs(rocket, ticks))

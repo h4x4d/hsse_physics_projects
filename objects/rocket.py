@@ -1,10 +1,11 @@
 import enum
 from operator import length_hint
 
+from aiohttp.payload import Order
 from jedi.debug import speed
 from mistune.plugins.ruby import parse_ruby
 from vpython import vector, arrow, color, cone, diff_angle
-from math import sin, cos, radians, pi
+from math import sin, cos, radians, pi, sqrt, exp
 
 from objects.earth import Earth
 
@@ -23,8 +24,8 @@ class Rocket:
     START_POS = vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)
 
     def __init__(self, camera):
-        self.axis = vector(cos(radians(51)) * 10, sin(radians(51)) * 10, 0)
-        self.acceleration_hat = self.axis.hat
+        axis = vector(cos(radians(51)) * 10, sin(radians(51)) * 10, 0)
+        self.acceleration_hat = axis.hat
 
         self.pos = self.START_POS
 
@@ -32,12 +33,12 @@ class Rocket:
 
         self.object = cone(
             pos=self.pos,
-            axis=self.axis,
+            axis=axis,
             color=color.white,
             radius=25,
             length=50,
             make_trail=True,
-            trail_radius=10 # 000
+            trail_radius=100000
         )
 
         self.acceleration = 0
@@ -45,7 +46,7 @@ class Rocket:
 
         self.status = Status.TAKEOFF
 
-        camera.follow(self.object)
+        # camera.follow(self.object)
 
     @property
     def mass(self):
@@ -80,20 +81,35 @@ class Rocket:
 
     def update_inertia(self, dt):
         need_vec = self.pos.cross(vector(0, 1, 0))
-        diff_angle = need_vec.diff_angle(self.axis)
-        self.object.rotate(max(0, min(pi/12, diff_angle)), vector(sin(radians(51)), -cos(radians(51)), 0))
-        self.axis = self.object.axis
+        diff_angle = need_vec.diff_angle(self.object.axis)
+        self.object.rotate(max(0.0, min(pi/12, diff_angle)), vector(sin(radians(51)), -cos(radians(51)), 0))
 
         free_fall_acceleration = (self.gravity_force() / self.mass)
-        # print(self.speed.mag, free_fall_acceleration)
         self.speed += self.acceleration_hat * (-free_fall_acceleration * dt)
         if all(i <= 0 for i in self.speed.value):
             self.status = Status.ORBIT
             self.speed = vector(0, 0, 0)
+            self.raise_speed()
             return
 
         self.pos += self.speed * dt
         self.object.pos = self.pos
+
+    def raise_speed(self):
+        self.speed = self.pos.cross(vector(0, 1, 0)).hat
+        self.speed *= sqrt(Earth.GRAVITATIONAL_CONSTANT * Earth.MASS / self.pos.mag)
+        self.fuel_mass -= self.mass * (1 - exp(-(self.speed.mag / self.GAS_SPEED)))
+        print(self.speed.mag, self.fuel_mass)
+
+    def update_orbit(self, dt):
+        need_vec = self.pos.cross(vector(0, 1, 0))
+
+        self.pos += self.speed * dt
+        self.object.pos = self.pos
+
+        free_fall_acceleration = (self.gravity_force() / self.mass)
+        self.speed -= self.pos.hat * (free_fall_acceleration * dt)
+        self.object.rotate(self.object.axis.diff_angle(need_vec), vector(sin(radians(51)), -cos(radians(51)), 0))
 
 
     def update(self, dt):
@@ -101,6 +117,8 @@ class Rocket:
             self.update_takeoff(dt)
         elif self.status == Status.INERTIA:
             self.update_inertia(dt)
+        elif self.status == Status.ORBIT:
+            self.update_orbit(dt)
         elif self.status == Status.NO_FUEL:
             print("NO FUEL")
             raise 1
