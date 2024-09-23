@@ -1,4 +1,4 @@
-from vpython import sphere, vector, color, rotate, rate, attach_trail, textures, canvas, arrow
+from vpython import sphere, vector, textures
 
 
 class Earth:

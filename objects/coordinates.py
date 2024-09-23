@@ -8,7 +8,10 @@ class Coordinates:
 
     def __init__(self, scale):
         self.arrows = (
-            arrow(axis=self.X * scale, shaftwidth=scale / 100, color=color.red),
-            arrow(axis=self.Y * scale, shaftwidth=scale / 100, color=color.green),
-            arrow(axis=self.Z * scale, shaftwidth=scale / 100, color=color.blue),
+            arrow(axis=self.X * scale,
+                  shaftwidth=scale / 100, color=color.red),
+            arrow(axis=self.Y * scale,
+                  shaftwidth=scale / 100, color=color.green),
+            arrow(axis=self.Z * scale,
+                  shaftwidth=scale / 100, color=color.blue),
         )

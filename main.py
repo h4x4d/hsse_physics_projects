@@ -1,27 +1,61 @@
-from vpython import rate
+import argparse
 
-from objects.canvas import Canvas
-from objects.coordinates import Coordinates
-from objects.earth import Earth
-from objects.ISS import ISSOrbit
-from objects.rocket import Rocket
-from render_logs import render_logs
+parser = argparse.ArgumentParser(
+    prog="Rocket starter",
+    description="Send rocket to space using simple python app!",
+)
+parser.add_argument("-a", "--attach",
+                    help="Attach camera to rocket",
+                    action="store_true")
 
-canvas = Canvas()
-coordinates_system = Coordinates(10 ** len(str(Earth.RADIUS)))
-iss_orbit = ISSOrbit()
-earth = Earth()
+parser.add_argument("-s", "--step",
+                    help="How many seconds in one step (default: 1)",
+                    default=1, )
 
-rocket = Rocket(canvas.canvas)
-# canvas.canvas.range = 1000
+parser.add_argument("-r", "--rate",
+                    help="How many steps in one second (default: 30)",
+                    default=60, )
 
-# input("START:")
-ticks = 0
-dt = 1
+parser.add_argument("-t", "--trail",
+                    help="Size of trail (0-100000) (default: 1000)",
+                    default=1000, )
 
-while True:
-    rate(1000)
-    ticks += dt
-    values = rocket.update(dt)
-    canvas.load_info(*render_logs(rocket, ticks))
+parser.add_argument("-m", "--max",
+                    help="Max amount of ticks (default: 1000)",
+                    default=1000, )
 
+
+def run(attach, dt, framerate, trail, maximum):
+    from vpython import rate
+
+    from objects.canvas import Canvas
+    from objects.coordinates import Coordinates
+    from objects.earth import Earth
+    from objects.ISS import ISSOrbit
+    from objects.rocket import Rocket
+    from render_logs import render_logs
+
+    canvas = Canvas((trail * 100 if trail else 1000) if attach else 0)
+
+    print(canvas.canvas.range)
+
+    Coordinates(10 ** len(str(Earth.RADIUS)))
+    ISSOrbit()
+    Earth()
+
+    rocket = Rocket(canvas.canvas if attach else None, trail)
+
+    ticks = 0
+
+    while ticks < maximum:
+        rate(framerate)
+        ticks += dt
+        rocket.update(dt)
+        canvas.load_info(*render_logs(rocket, ticks))
+
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+
+    run(args.attach, int(args.step), int(args.rate),
+        int(args.trail), int(args.max))

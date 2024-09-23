@@ -1,10 +1,5 @@
 import enum
-from operator import length_hint
-
-from aiohttp.payload import Order
-from jedi.debug import speed
-from mistune.plugins.ruby import parse_ruby
-from vpython import vector, arrow, color, cone, diff_angle
+from vpython import vector, color, cone
 from math import sin, cos, radians, pi, sqrt, exp
 
 from objects.earth import Earth
@@ -21,9 +16,11 @@ class Status(enum.Enum):
 class Rocket:
     MASS = 1000
     GAS_SPEED = 8000
-    START_POS = vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)
+    START_POS = (vector(cos(radians(51)) * Earth.RADIUS,
+                        sin(radians(51)) * Earth.RADIUS, 0)
+                 - vector(16060, 16060, 0))
 
-    def __init__(self, camera):
+    def __init__(self, camera, trail_radius):
         axis = vector(cos(radians(51)) * 10, sin(radians(51)) * 10, 0)
         self.acceleration_hat = axis.hat
 
@@ -38,7 +35,7 @@ class Rocket:
             radius=25,
             length=50,
             make_trail=True,
-            trail_radius=100000
+            trail_radius=trail_radius
         )
 
         self.acceleration = 0
@@ -46,14 +43,16 @@ class Rocket:
 
         self.status = Status.TAKEOFF
 
-        # camera.follow(self.object)
+        if camera:
+            camera.follow(self.object)
 
     @property
     def mass(self):
         return self.MASS + self.fuel_mass
 
     def gravity_force(self):
-        return Earth.GRAVITATIONAL_CONSTANT * Earth.MASS * self.mass / self.pos.mag2
+        return (Earth.GRAVITATIONAL_CONSTANT *
+                Earth.MASS * self.mass / self.pos.mag2)
 
     def update_takeoff(self, dt):
         acceleration = Earth.FREE_FALL_ACCELERATION * 4
@@ -75,14 +74,14 @@ class Rocket:
 
         if self.pos.mag + inertia_distance >= Earth.RADIUS + 200 * 1000:
             self.status = Status.INERTIA
-            print(f"INERTIA: {self.pos.mag - (vector(cos(radians(51)) * Earth.RADIUS, sin(radians(51)) * Earth.RADIUS, 0) - vector(16060, 16060, 0)).mag}, {self.speed.mag}, {inertia_distance}")
 
         self.object.pos = self.pos
 
     def update_inertia(self, dt):
         need_vec = self.pos.cross(vector(0, 1, 0))
         diff_angle = need_vec.diff_angle(self.object.axis)
-        self.object.rotate(max(0.0, min(pi/12, diff_angle)), vector(sin(radians(51)), -cos(radians(51)), 0))
+        self.object.rotate(max(0.0, min(pi / 12, diff_angle)),
+                           vector(sin(radians(51)), -cos(radians(51)), 0))
 
         free_fall_acceleration = (self.gravity_force() / self.mass)
         self.speed += self.acceleration_hat * (-free_fall_acceleration * dt)
@@ -97,8 +96,10 @@ class Rocket:
 
     def raise_speed(self):
         self.speed = self.pos.cross(vector(0, 1, 0)).hat
-        self.speed *= sqrt(Earth.GRAVITATIONAL_CONSTANT * Earth.MASS / self.pos.mag)
-        self.fuel_mass -= self.mass * (1 - exp(-(self.speed.mag / self.GAS_SPEED)))
+        self.speed *= sqrt(Earth.GRAVITATIONAL_CONSTANT
+                           * Earth.MASS / self.pos.mag)
+        self.fuel_mass -= (self.mass *
+                           (1 - exp(-(self.speed.mag / self.GAS_SPEED))))
         print(self.speed.mag, self.fuel_mass)
 
     def update_orbit(self, dt):
@@ -108,9 +109,10 @@ class Rocket:
         self.object.pos = self.pos
 
         free_fall_acceleration = (self.gravity_force() / self.mass)
-        self.speed -= self.pos.hat * (free_fall_acceleration * dt)
-        self.object.rotate(self.object.axis.diff_angle(need_vec), vector(sin(radians(51)), -cos(radians(51)), 0))
-
+        self.speed -= (self.pos.hat *
+                       (free_fall_acceleration * dt))
+        self.object.rotate(self.object.axis.diff_angle(need_vec),
+                           vector(sin(radians(51)), -cos(radians(51)), 0))
 
     def update(self, dt):
         if self.status == Status.TAKEOFF:
@@ -121,4 +123,4 @@ class Rocket:
             self.update_orbit(dt)
         elif self.status == Status.NO_FUEL:
             print("NO FUEL")
-            raise 1
+            raise ValueError("NO FUEL")
