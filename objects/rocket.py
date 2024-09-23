@@ -3,8 +3,8 @@ from operator import length_hint
 
 from jedi.debug import speed
 from mistune.plugins.ruby import parse_ruby
-from vpython import vector, arrow, color, cone
-from math import sin, cos, radians
+from vpython import vector, arrow, color, cone, diff_angle
+from math import sin, cos, radians, pi
 
 from objects.earth import Earth
 
@@ -24,6 +24,8 @@ class Rocket:
 
     def __init__(self, camera):
         self.axis = vector(cos(radians(51)) * 10, sin(radians(51)) * 10, 0)
+        self.acceleration_hat = self.axis.hat
+
         self.pos = self.START_POS
 
         self.speed = vector(0, 0, 0)
@@ -65,10 +67,10 @@ class Rocket:
             self.status = Status.NO_FUEL
 
         self.acceleration = acceleration
-        self.speed += self.axis / self.axis.mag * (self.acceleration * dt)
+        self.speed += self.acceleration_hat * (self.acceleration * dt)
         self.pos += self.speed * dt
 
-        inertia_distance = (self.speed.mag2) / (2 * free_fall_acceleration)
+        inertia_distance = self.speed.mag2 / (2 * free_fall_acceleration)
 
         if self.pos.mag + inertia_distance >= Earth.RADIUS + 200 * 1000:
             self.status = Status.INERTIA
@@ -77,10 +79,14 @@ class Rocket:
         self.object.pos = self.pos
 
     def update_inertia(self, dt):
-        # need_vec = self.pos.cross(vector(0, 1, 0)) / self.pos.cross(vector(0, 1, 0)).mag
+        need_vec = self.pos.cross(vector(0, 1, 0))
+        diff_angle = need_vec.diff_angle(self.axis)
+        self.object.rotate(max(0, min(pi/12, diff_angle)), vector(sin(radians(51)), -cos(radians(51)), 0))
+        self.axis = self.object.axis
+
         free_fall_acceleration = (self.gravity_force() / self.mass)
-        print(self.speed.mag, free_fall_acceleration)
-        self.speed += self.axis / self.axis.mag * (-free_fall_acceleration * dt)
+        # print(self.speed.mag, free_fall_acceleration)
+        self.speed += self.acceleration_hat * (-free_fall_acceleration * dt)
         if all(i <= 0 for i in self.speed.value):
             self.status = Status.ORBIT
             self.speed = vector(0, 0, 0)
