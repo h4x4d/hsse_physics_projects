@@ -26,7 +26,7 @@ class Rocket:
 
         self.pos = self.START_POS
 
-        self.speed = vector(0, 0, 0)
+        self.speed = (self.pos.cross(vector(0, 1, 0)).hat * Earth.ANGULAR_SPEED * Earth.RADIUS)
 
         self.object = cone(
             pos=self.pos,
@@ -58,7 +58,6 @@ class Rocket:
         acceleration = Earth.FREE_FALL_ACCELERATION * 4
         free_fall_acceleration = (self.gravity_force() / self.mass)
         need_acceleration = acceleration + free_fall_acceleration
-        print(need_acceleration)
 
         spent_fuel = need_acceleration * self.mass / self.GAS_SPEED
         self.fuel_mass -= spent_fuel * dt
@@ -85,7 +84,7 @@ class Rocket:
 
         free_fall_acceleration = (self.gravity_force() / self.mass)
         self.speed += self.acceleration_hat * (-free_fall_acceleration * dt)
-        if all(i <= 0 for i in self.speed.value):
+        if self.speed.x <= 0 and self.speed.y <= 0:
             self.status = Status.ORBIT
             self.speed = vector(0, 0, 0)
             self.raise_speed()
