@@ -13,5 +13,5 @@ class Coordinates:
             arrow(axis=self.Y * scale,
                   shaftwidth=scale / 100, color=color.green),
             arrow(axis=self.Z * scale,
-                  shaftwidth=scale / 100, color=color.blue),
+                  shaftwidth=scale / 100, color=color.blue)
         )

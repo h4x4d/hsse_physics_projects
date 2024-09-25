@@ -1,6 +1,6 @@
 import argparse
 
-from logs.log_info import log_info
+from logs.logger import Logger
 
 parser = argparse.ArgumentParser(
     prog="Rocket starter",
@@ -51,14 +51,18 @@ def run(attach, dt, framerate, trail, maximum, logging):
 
     ticks = 0
 
+    if logging:
+        logger = Logger()
+
     while ticks < maximum:
         rate(framerate)
         ticks += dt
         earth.update(dt)
         rocket.update(dt)
         canvas.load_info(*render_logs(rocket, ticks))
+
         if logging:
-            log_info(rocket, ticks)
+            logger.log_info(rocket, ticks)
 
 
 if __name__ == '__main__':
