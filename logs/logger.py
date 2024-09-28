@@ -4,8 +4,8 @@ from objects.earth import Earth
 
 
 class Logger:
-    def __init__(self):
-        self.log_file = csv.writer(open('logs.csv', 'w', encoding='utf-8'))
+    def __init__(self, log_file_name):
+        self.log_file = csv.writer(open(log_file_name, 'w', encoding='utf-8'))
         self.log_file.writerow(["status", "mass", "fuel_mass", "pos", "height",
                                 "speed", "speed_mag", "acceleration", "time"])
 

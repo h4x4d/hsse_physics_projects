@@ -28,10 +28,10 @@ parser.add_argument("-m", "--max",
 
 parser.add_argument("-l", "--logging",
                     help="Log rocket status",
-                    action="store_true")
+                    default="")
 
 
-def run(attach, dt, framerate, trail, maximum, logging):
+def run(attach, dt, framerate, trail, maximum, log_file):
     from vpython import rate
 
     from objects.canvas import Canvas
@@ -51,8 +51,9 @@ def run(attach, dt, framerate, trail, maximum, logging):
 
     ticks = 0
 
-    if logging:
-        logger = Logger()
+    logger = None
+    if log_file:
+        logger = Logger(log_file)
 
     while ticks < maximum:
         rate(framerate)
@@ -61,7 +62,7 @@ def run(attach, dt, framerate, trail, maximum, logging):
         rocket.update(dt)
         canvas.load_info(*render_logs(rocket, ticks))
 
-        if logging:
+        if logger:
             logger.log_info(rocket, ticks)
 
 

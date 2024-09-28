@@ -36,7 +36,7 @@ class Rocket:
             color=color.white,
             radius=25,
             length=50,
-            make_trail=True,
+            make_trail=True if trail_radius > 0 else False,
             trail_radius=trail_radius
         )
 
