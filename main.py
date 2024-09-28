@@ -1,5 +1,7 @@
 import argparse
 
+from vpython.no_notebook import stop_server
+
 from logs.logger import Logger
 
 parser = argparse.ArgumentParser(
@@ -30,8 +32,12 @@ parser.add_argument("-l", "--logging",
                     help="Log rocket status",
                     default="")
 
+parser.add_argument("--stop",
+                    help="Stop on reached maximum",
+                    action="store_true")
 
-def run(attach, dt, framerate, trail, maximum, log_file):
+
+def run(attach, dt, framerate, trail, maximum, log_file, stop):
     from vpython import rate
 
     from objects.canvas import Canvas
@@ -65,9 +71,12 @@ def run(attach, dt, framerate, trail, maximum, log_file):
         if logger:
             logger.log_info(rocket, ticks)
 
+    if stop:
+        stop_server()
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    run(args.attach, int(args.step), int(args.rate),
-        int(args.trail), int(args.max), args.logging)
+    run(args.attach, float(args.step), int(args.rate),
+        int(args.trail), int(args.max), args.logging, int(args.stop))
