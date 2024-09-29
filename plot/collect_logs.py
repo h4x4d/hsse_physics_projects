@@ -6,6 +6,8 @@ dt = [
 ]
 MAX = 1000
 
+if not os.path.exists("logs"):
+    os.mkdir("logs")
 
 for i in dt:
     os.system(f"python ../main.py --trail=10000 -r {int(MAX / i / 5)} -m 1000 -l logs/logs{i}.csv -s {i} --stop")
