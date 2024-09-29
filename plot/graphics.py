@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-data = pd.read_csv(open('logs/logs0.1.csv', 'r', encoding='utf-8'))
+data = pd.read_csv(open('../logs2.csv', 'r', encoding='utf-8'))
 
 # Пример данных
 time = data.time  # время в часах

@@ -10,6 +10,7 @@ class Status(enum.Enum):
     INERTIA = 2
     RAISING_SPEED = 3
     ORBIT = 4
+    HOHMANN = 5
     NO_FUEL = 100
 
 
@@ -44,6 +45,9 @@ class Rocket:
         self.fuel_mass = 6000
 
         self.status = Status.TAKEOFF
+
+        self.timing = 0
+        self.start_pos = vector(0, 0, 0)
 
         if camera:
             camera.follow(self.object)
@@ -87,7 +91,7 @@ class Rocket:
         diff_angle = need_vec.diff_angle(self.object.axis)
         if diff_angle > 0.1:
             print("rotating rocket")
-            self.object.rotate(max(0.0, min(pi / 12, diff_angle)),
+            self.object.rotate(max(0.0, min(dt * pi / 12, diff_angle)),
                                vector(sin(radians(51)), -cos(radians(51)), 0))
         else:
             self.status = Status.RAISING_SPEED
@@ -127,16 +131,47 @@ class Rocket:
             self.status = Status.ORBIT
             return
 
+    def orbital_speed(self, height):
+        return ((sqrt(Earth.GRAVITATIONAL_CONSTANT
+                      * Earth.MASS / height)))
+
     def raise_speed(self):
         new_speed = (self.pos.cross(self.ORBIT_AXIS).hat *
-                     (sqrt(Earth.GRAVITATIONAL_CONSTANT
-                           * Earth.MASS / self.pos.mag)))
+                     self.orbital_speed(self.pos.mag))
         self.fuel_mass -= (self.mass *
                            (1 - exp(-((new_speed.mag -
                                        self.speed.mag) / self.GAS_SPEED))))
         self.speed = new_speed
 
-    def update_orbit(self, dt):
+    def start_hohmann(self):
+        second_speed = self.orbital_speed(Earth.RADIUS + 400 * 1000)
+        first_speed = self.orbital_speed(Earth.RADIUS + 200 * 1000)
+        speed_p = sqrt((first_speed ** 2 + second_speed ** 2) / 2)
+        need_vec = self.pos.cross(self.ORBIT_AXIS).hat
+
+        self.start_pos = self.pos
+
+        self.speed += need_vec * (first_speed * (first_speed / speed_p - 1))
+
+        self.fuel_mass = (self.mass /
+                          (exp((first_speed * (first_speed / speed_p - 1))
+                               / self.GAS_SPEED)) - self.MASS)
+
+    def second_hohmann(self):
+        second_speed = self.orbital_speed(Earth.RADIUS + 400 * 1000)
+        first_speed = self.orbital_speed(Earth.RADIUS + 200 * 1000)
+        speed_p = sqrt((first_speed ** 2 + second_speed ** 2) / 2)
+        need_vec = self.pos.cross(self.ORBIT_AXIS).hat
+
+        self.speed += need_vec * (second_speed * (1 - second_speed / speed_p))
+
+        print(self.fuel_mass)
+        self.fuel_mass = (self.mass /
+                          (exp((second_speed * (1 - second_speed / speed_p))
+                               / self.GAS_SPEED)) - self.MASS)
+        print(self.fuel_mass)
+
+    def update_on_orbit(self, dt):
         need_vec = self.pos.cross(self.ORBIT_AXIS)
 
         self.pos += self.speed * dt
@@ -148,15 +183,33 @@ class Rocket:
         self.object.rotate(self.object.axis.diff_angle(need_vec),
                            vector(sin(radians(51)), -cos(radians(51)), 0))
 
+    def update_orbit(self, dt):
+        self.update_on_orbit(dt)
+
+        self.timing += dt
+
+        if self.timing >= 100:
+            self.timing = -10 ** 9
+            self.start_hohmann()
+            self.status = Status.HOHMANN
+
+    def update_hohmann(self, dt):
+        self.update_on_orbit(dt)
+        if self.pos.diff_angle(self.start_pos) >= pi - 0.0001:
+            self.second_hohmann()
+            self.status = Status.ORBIT
+
+    def no_fuel(self, *_, **__):
+        print("NO FUEL")
+        raise ValueError("NO FUEL")
+
     def update(self, dt):
-        if self.status == Status.TAKEOFF:
-            self.update_takeoff(dt)
-        elif self.status == Status.INERTIA:
-            self.update_inertia(dt)
-        elif self.status == Status.RAISING_SPEED:
-            self.update_raising_speed(dt)
-        elif self.status == Status.ORBIT:
-            self.update_orbit(dt)
-        elif self.status == Status.NO_FUEL:
-            print("NO FUEL")
-            raise ValueError("NO FUEL")
+        statuses = {
+            Status.TAKEOFF: self.update_takeoff,
+            Status.INERTIA: self.update_inertia,
+            Status.RAISING_SPEED: self.update_raising_speed,
+            Status.ORBIT: self.update_orbit,
+            Status.HOHMANN: self.update_hohmann,
+            Status.NO_FUEL: self.no_fuel
+        }
+        statuses[self.status](dt)
