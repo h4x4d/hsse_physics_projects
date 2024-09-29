@@ -126,6 +126,8 @@ class Rocket:
         self.pos += self.speed * dt
         self.object.pos = self.pos
 
+        self.last_angle = 0.0
+
         if self.height > 200 * 1000:
             self.raise_speed()
             self.status = Status.ORBIT
@@ -195,9 +197,11 @@ class Rocket:
 
     def update_hohmann(self, dt):
         self.update_on_orbit(dt)
-        if self.pos.diff_angle(self.start_pos) >= pi - 0.001:
+        if self.pos.diff_angle(self.start_pos) < self.last_angle:
             self.second_hohmann()
             self.status = Status.ORBIT
+        else:
+            self.last_angle = self.pos.diff_angle(self.start_pos)
 
     def no_fuel(self, *_, **__):
         print("NO FUEL")
