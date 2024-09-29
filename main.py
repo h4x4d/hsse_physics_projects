@@ -1,7 +1,5 @@
 import argparse
 
-from vpython.no_notebook import stop_server
-
 from logs.logger import Logger
 
 parser = argparse.ArgumentParser(
@@ -38,19 +36,20 @@ parser.add_argument("--stop",
 
 
 def run(attach, dt, framerate, trail, maximum, log_file, stop):
-    from vpython import rate
-
     from objects.canvas import Canvas
+    canvas = Canvas((trail * 100 if trail else 1000) if attach else 0)
+
+    from vpython import rate
+    from vpython.no_notebook import stop_server
+
     from objects.coordinates import Coordinates
     from objects.earth import Earth
-    from objects.ISS import ISSOrbit
+    from objects.ISS import ISS
     from objects.rocket import Rocket
     from logs.render_logs import render_logs
 
-    canvas = Canvas((trail * 100 if trail else 1000) if attach else 0)
 
     Coordinates(10 ** len(str(Earth.RADIUS)))
-    ISSOrbit()
     earth = Earth()
 
     rocket = Rocket(canvas.canvas if attach else None, trail)
@@ -66,6 +65,7 @@ def run(attach, dt, framerate, trail, maximum, log_file, stop):
         ticks += dt
         earth.update(dt)
         rocket.update(dt)
+        ISS.update(dt)
         canvas.load_info(*render_logs(rocket, ticks))
 
         if logger:
