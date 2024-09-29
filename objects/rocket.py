@@ -195,7 +195,7 @@ class Rocket:
 
     def update_hohmann(self, dt):
         self.update_on_orbit(dt)
-        if self.pos.diff_angle(self.start_pos) >= pi - 0.0001:
+        if self.pos.diff_angle(self.start_pos) >= pi - 0.001:
             self.second_hohmann()
             self.status = Status.ORBIT
 
