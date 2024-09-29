@@ -2,6 +2,7 @@ import enum
 from vpython import vector, color, cone
 from math import sin, cos, radians, pi, sqrt, exp
 
+from objects.ISS import ISS
 from objects.earth import Earth
 
 
@@ -46,8 +47,10 @@ class Rocket:
 
         self.status = Status.TAKEOFF
 
+        self.last_angle = 0.0
+
         self.timing = 0
-        self.start_pos = vector(0, 0, 0)
+        self.start_pos = 0
 
         if camera:
             camera.follow(self.object)
@@ -91,7 +94,7 @@ class Rocket:
         diff_angle = need_vec.diff_angle(self.object.axis)
         if diff_angle > 0.1:
             print("rotating rocket")
-            self.object.rotate(max(0.0, min(dt * pi / 12, diff_angle)),
+            self.object.rotate(max(0.0, min(dt * pi / 12, diff_angle)) * dt,
                                vector(sin(radians(51)), -cos(radians(51)), 0))
         else:
             self.status = Status.RAISING_SPEED
@@ -126,8 +129,6 @@ class Rocket:
         self.pos += self.speed * dt
         self.object.pos = self.pos
 
-        self.last_angle = 0.0
-
         if self.height > 200 * 1000:
             self.raise_speed()
             self.status = Status.ORBIT
@@ -146,12 +147,11 @@ class Rocket:
         self.speed = new_speed
 
     def start_hohmann(self):
+        self.start_pos = self.pos
+        first_speed = self.orbital_speed(self.start_pos.mag)
         second_speed = self.orbital_speed(Earth.RADIUS + 400 * 1000)
-        first_speed = self.orbital_speed(Earth.RADIUS + 200 * 1000)
         speed_p = sqrt((first_speed ** 2 + second_speed ** 2) / 2)
         need_vec = self.pos.cross(self.ORBIT_AXIS).hat
-
-        self.start_pos = self.pos
 
         self.speed += need_vec * (first_speed * (first_speed / speed_p - 1))
 
@@ -161,7 +161,7 @@ class Rocket:
 
     def second_hohmann(self):
         second_speed = self.orbital_speed(Earth.RADIUS + 400 * 1000)
-        first_speed = self.orbital_speed(Earth.RADIUS + 200 * 1000)
+        first_speed = self.orbital_speed(self.start_pos.mag)
         speed_p = sqrt((first_speed ** 2 + second_speed ** 2) / 2)
         need_vec = self.pos.cross(self.ORBIT_AXIS).hat
 
@@ -182,7 +182,7 @@ class Rocket:
         free_fall_acceleration = (self.gravity_force() / self.mass)
         self.speed -= (self.pos.hat *
                        (free_fall_acceleration * dt))
-        self.object.rotate(self.object.axis.diff_angle(need_vec),
+        self.object.rotate(self.object.axis.diff_angle(need_vec) * dt,
                            vector(sin(radians(51)), -cos(radians(51)), 0))
 
     def update_orbit(self, dt):
@@ -191,7 +191,7 @@ class Rocket:
         self.timing += dt
 
         if self.timing >= 100:
-            self.timing = -10 ** 9
+            self.timing = -10 ** 20
             self.start_hohmann()
             self.status = Status.HOHMANN
 
