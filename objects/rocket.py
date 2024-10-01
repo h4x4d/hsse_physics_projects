@@ -12,6 +12,7 @@ class Status(enum.Enum):
     RAISING_SPEED = 3
     ORBIT = 4
     HOHMANN = 5
+    RAISING_ISS = 6
     NO_FUEL = 100
 
 
@@ -36,8 +37,8 @@ class Rocket:
             pos=self.pos,
             axis=axis,
             color=color.white,
-            radius=25,
-            length=50,
+            radius=100000,
+            length=100000,
             make_trail=True if trail_radius > 0 else False,
             trail_radius=trail_radius
         )
@@ -160,12 +161,12 @@ class Rocket:
                                / self.GAS_SPEED)) - self.MASS)
 
     def second_hohmann(self):
-        second_speed = self.orbital_speed(Earth.RADIUS + 400 * 1000)
+        second_speed = self.orbital_speed(self.pos.mag)
         first_speed = self.orbital_speed(self.start_pos.mag)
         speed_p = sqrt((first_speed ** 2 + second_speed ** 2) / 2)
         need_vec = self.pos.cross(self.ORBIT_AXIS).hat
 
-        self.speed += need_vec * (second_speed * (1 - second_speed / speed_p))
+        self.speed = need_vec * second_speed
 
         print(self.fuel_mass)
         self.fuel_mass = (self.mass /
@@ -176,12 +177,13 @@ class Rocket:
     def update_on_orbit(self, dt):
         need_vec = self.pos.cross(self.ORBIT_AXIS)
 
-        self.pos += self.speed * dt
-        self.object.pos = self.pos
-
         free_fall_acceleration = (self.gravity_force() / self.mass)
         self.speed -= (self.pos.hat *
                        (free_fall_acceleration * dt))
+
+        self.pos += self.speed * dt
+        self.object.pos = self.pos
+
         self.object.rotate(self.object.axis.diff_angle(need_vec) * dt,
                            vector(sin(radians(51)), -cos(radians(51)), 0))
 
@@ -199,9 +201,39 @@ class Rocket:
         self.update_on_orbit(dt)
         if self.pos.diff_angle(self.start_pos) < self.last_angle:
             self.second_hohmann()
-            self.status = Status.ORBIT
+
+            self.status = Status.RAISING_ISS
+
+            second_speed = self.orbital_speed(self.pos.mag)
+            need_vec = self.pos.cross(self.ORBIT_AXIS).hat
+
+            self.speed = need_vec * (second_speed+40)
         else:
             self.last_angle = self.pos.diff_angle(self.start_pos)
+
+    def update_iss_orbit(self, dt):
+        if self.pos.mag > 400 * 1000 + Earth.RADIUS:
+            self.raise_on_orbit_iss(self.speed.mag + 40, dt)
+        else:
+            self.update_on_orbit(dt)
+
+        print((ISS.object.pos - self.pos).mag)
+        if (ISS.object.pos - self.pos).mag < 3000:
+
+            self.status = Status.ORBIT
+
+    def raise_on_orbit_iss(self, speed, dt):
+        need_vec = self.pos.cross(self.ORBIT_AXIS)
+
+        free_fall_acceleration = speed**2/self.pos.mag
+        self.speed -= (self.pos.hat *
+                       (free_fall_acceleration * dt))
+
+        self.pos += self.speed * dt
+        self.object.pos = self.pos
+
+        self.object.rotate(self.object.axis.diff_angle(need_vec) * dt,
+                           vector(sin(radians(51)), -cos(radians(51)), 0))
 
     def no_fuel(self, *_, **__):
         print("NO FUEL")
@@ -214,6 +246,7 @@ class Rocket:
             Status.RAISING_SPEED: self.update_raising_speed,
             Status.ORBIT: self.update_orbit,
             Status.HOHMANN: self.update_hohmann,
+            Status.RAISING_ISS: self.update_iss_orbit,
             Status.NO_FUEL: self.no_fuel
         }
         statuses[self.status](dt)
