@@ -175,7 +175,7 @@ class Rocket:
         speed_p = sqrt((first_speed ** 2 + second_speed ** 2) / 2)
         need_vec = self.pos.cross(self.ORBIT_AXIS).hat
 
-        self.speed = need_vec * second_speed
+        self.speed += need_vec * (second_speed * (1 - second_speed / speed_p))
 
         print(self.fuel_mass)
         self.fuel_mass = (self.mass /

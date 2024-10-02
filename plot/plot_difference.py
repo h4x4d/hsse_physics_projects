@@ -14,7 +14,7 @@ heights = []
 fuels = []
 times = []
 names = []
-
+print(sorted(glob.glob("logs/*.csv"), key=lambda x: float(x.split('logs')[-1][:-4])))
 # Создаем координаты для n множеств
 for i in sorted(glob.glob("logs/*.csv"), key=lambda x: float(x.split('logs')[-1][:-4])):
     file = pd.read_csv(i)
