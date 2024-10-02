@@ -19,8 +19,8 @@ class ISSOrbit:
 
 class ISS:
     ORBIT = Earth.RADIUS + 400 * 1000
-    START_POS = vector(-cos(radians(51)) * ORBIT,
-                       -sin(radians(51)) * ORBIT, 0)
+    START_POS = vector(cos(radians(51)) * ORBIT,
+                       sin(radians(51)) * ORBIT, 0)
     ORBIT_AXIS = vector(-sin(radians(51)), cos(radians(51)), 0)
     CENTER = vector(0, 0, 0)
     RADIUS = 100000
