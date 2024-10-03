@@ -43,8 +43,8 @@ class Rocket:
             pos=self.pos,
             axis=axis,
             color=color.white,
-            radius=100000,  # 25
-            length=100000,  # 50
+            radius=25,  # 25
+            length=50,  # 50
             make_trail=True if trail_radius > 0 else False,
             trail_radius=trail_radius
         )
@@ -103,7 +103,7 @@ class Rocket:
         need_vec = self.pos.cross(self.ORBIT_AXIS)
         diff_angle = need_vec.diff_angle(self.object.axis)
         if diff_angle > 0.1:
-            print("rotating rocket")
+            # print("rotating rocket")
             self.object.rotate(max(0.0, min(dt * pi / 12, diff_angle)) * dt,
                                vector(sin(radians(51)), -cos(radians(51)), 0))
         else:
@@ -246,7 +246,7 @@ class Rocket:
         self.pos += self.speed * dt
         self.object.pos = self.pos
 
-        self.object.rotate(self.object.axis.diff_angle(need_vec) * dt,
+        self.object.rotate(self.object.axis.diff_angle(need_vec),
                            vector(sin(radians(51)), -cos(radians(51)), 0))
 
     def update_rotate_on_orbit(self, dt):
