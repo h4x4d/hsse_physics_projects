@@ -1,11 +1,11 @@
 import enum
-from vpython import vector, color, cone, diff_angle
+from vpython import vector, color, cone
 from math import sin, cos, radians, pi, sqrt, exp
 
 from vpython.no_notebook import stop_server
 
-from objects.ISS import ISS
-from objects.earth import Earth
+from project_1.objects.ISS import ISS
+from project_1.objects.earth import Earth
 
 
 class Status(enum.Enum):

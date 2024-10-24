@@ -4,7 +4,7 @@ import time
 dt = [
     0.1, 0.3, 0.5, 0.7, 1
 ]
-MAX = 50000
+MAX = 30000
 
 if not os.path.exists("logs"):
     os.mkdir("logs")
