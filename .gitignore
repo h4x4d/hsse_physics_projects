@@ -1,7 +1,9 @@
 .idea/
 trash/
-test.py
+project_1/test.py
 test/
-logs.csv
+project_1/logs.csv
 **/logs/
 log*.csv
+**/.venv/
+**/venv/
