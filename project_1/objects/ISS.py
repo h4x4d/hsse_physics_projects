@@ -1,8 +1,8 @@
 from math import cos, sin, radians, sqrt
 
-from vpython import vector, ring, color, sphere, textures
+from vpython import vector, sphere, textures
 
-from objects.earth import Earth
+from project_1.objects.earth import Earth
 
 """
 class ISSOrbit:
@@ -36,9 +36,7 @@ class ISS:
 
     @staticmethod
     def update(dt):
-        # Обновляем скорость
         ISS.speed -= (ISS.object.pos.hat *
                       ((Earth.GRAVITATIONAL_CONSTANT *
                         Earth.MASS / ISS.object.pos.mag2) * dt))
-        # Обновляем позицию объекта
         ISS.object.pos += ISS.speed * dt
