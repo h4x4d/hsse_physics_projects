@@ -13,12 +13,13 @@ staticBlocks = [
     [dimx // 2 + 40, dimy // 2 - 40, dimx // 2 + 42, dimy // 2 + 40],
     [dimx // 2 + 1, dimy // 2 - 40, dimx // 2 + 40, dimy // 2 - 38],
     [dimx // 2 - 42, dimy // 2 - 40, dimx // 2 - 40, dimy // 2 + 40],
-    [dimx // 2 - 40, dimy // 2 - 40, dimx // 2 - 1 , dimy // 2 - 38],
+    [dimx // 2 - 40, dimy // 2 - 40, dimx // 2 - 1, dimy // 2 - 38],
     # [dimx // 2 - 5, dimy // 2 + 45, dimx // 2 + 5, dimy // 2 + 55],
     # [0, 9, dimx-1, 10],
     # [dimx // 2 - 40, dimy // 2 + 38, dimx // 2 + 40 , dimy // 2 + 40],
     # [0, 8, dimx-1, 9],
 ]
+
 
 def init_simulation():
     u = np.zeros((3, dimx, dimy))  # The three-dimensional simulation grid
@@ -31,28 +32,32 @@ def update(u, alpha):
     u[2], u[1] = u[1], u[0].copy()  # Avoid extra copying, reassign layers directly
 
     u[0, 1:dimx - 1, 1:dimy - 1] = (
-        alpha[1:dimx - 1, 1:dimy - 1]
-        * (
-            u[1, 0:dimx - 2, 1:dimy - 1]  # Left neighbors
-            + u[1, 2:dimx, 1:dimy - 1]    # Right neighbors
-            + u[1, 1:dimx - 1, 0:dimy - 2]  # Top neighbors
-            + u[1, 1:dimx - 1, 2:dimy]    # Bottom neighbors
-            - 4 * u[1, 1:dimx - 1, 1:dimy - 1]  # Current cell
-        )
+            alpha[1:dimx - 1, 1:dimy - 1]
+            * (
+                    u[1, 0:dimx - 2, 1:dimy - 1]  # Left neighbors
+                    + u[1, 2:dimx, 1:dimy - 1]  # Right neighbors
+                    + u[1, 1:dimx - 1, 0:dimy - 2]  # Top neighbors
+                    + u[1, 1:dimx - 1, 2:dimy]  # Bottom neighbors
+                    - 4 * u[1, 1:dimx - 1, 1:dimy - 1]  # Current cell
+            )
     )
     u[0, 1:dimx - 1, 1:dimy - 1] += 2 * u[1, 1:dimx - 1, 1:dimy - 1] - u[2, 1:dimx - 1, 1:dimy - 1]
     u[0, 1:dimx - 1, 1:dimy - 1] *= (0.995 ** k)
+
 
 def add_static(u, blocks):
     for block in blocks:
         add_static_block(u, block)
 
+
 def add_static_block(u, cords):
     u[0, cords[0]:cords[2], cords[1]:cords[3]] = 0
+
 
 def render_static(blocks, pixeldata):
     for block in blocks:
         pixeldata[block[0]:block[2], block[1]:block[3], 1] = 0
+
 
 def place_raindrops(u):
     if random.random() < 0.0002:
@@ -60,8 +65,10 @@ def place_raindrops(u):
         y = random.randrange(5, dimy - 5)
         u[0, x - 2:x + 2, y - 2:y + 2] = 120
 
+
 def center_wave(u, x, y, v):
     u[0, x, y] = v
+
 
 def render_arr(x_cords, y_cords):
     plt.plot(x_cords, y_cords)
@@ -73,6 +80,7 @@ def render_arr(x_cords, y_cords):
 
     # function to show the plot
     plt.show()
+
 
 def main():
     pygame.init()
@@ -114,8 +122,9 @@ def main():
         display.blit(pygame.transform.scale(surf, (dimx * cellsize, dimy * cellsize)), (0, 0))
         pygame.display.update()
 
-        clock.tick(60 * (1/k))  # Limit to 60 frames per second
+        clock.tick(60 / k)  # Limit to 60 frames per second
 
     render_arr(x_cords, y_cords)
+
 
 main()
