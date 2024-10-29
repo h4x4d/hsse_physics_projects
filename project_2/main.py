@@ -41,7 +41,7 @@ def update(u, alpha):
         )
     )
     u[0, 1:dimx - 1, 1:dimy - 1] += 2 * u[1, 1:dimx - 1, 1:dimy - 1] - u[2, 1:dimx - 1, 1:dimy - 1]
-    u[0, 1:dimx - 1, 1:dimy - 1] *= 0.995
+    u[0, 1:dimx - 1, 1:dimy - 1] *= (0.995 ** k)
 
 def add_static(u, blocks):
     for block in blocks:
@@ -102,7 +102,7 @@ def main():
 
         x_cords.append(dt)
         y_cords.append(u[0, dimx // 2, dimy // 2])
-        dt += 1
+        dt += k
 
         # Vectorized update of pixel data
         pixeldata[1:dimx, 1:dimy, 0] = np.clip(u[0, 1:dimx, 1:dimy] + 128, 0, 255)
@@ -114,7 +114,7 @@ def main():
         display.blit(pygame.transform.scale(surf, (dimx * cellsize, dimy * cellsize)), (0, 0))
         pygame.display.update()
 
-        clock.tick(60)  # Limit to 60 frames per second
+        clock.tick(60 * (1/k))  # Limit to 60 frames per second
 
     render_arr(x_cords, y_cords)
 
